@@ -1,32 +1,45 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"sync"
 
 	"github.com/harsh-m-patil/cryptomasters/api"
 )
 
 func main() {
-	currencies := []string{"BTC", "ETH", "BCH"}
-	var wg sync.WaitGroup
+	from := flag.String("from", "BTC", "currency from which you want to convert")
+	to := flag.String("to", "USD", "currency in which you want to convert")
+	list := flag.Bool("list", false, "list all available currencies")
 
-	for _, currency := range currencies {
-		wg.Add(1)
-		go func() {
-			getCurrencyData(currency)
-			wg.Done()
-		}()
+	flag.Parse()
+
+	currencyMap := api.GetList()
+	if *list {
+		printAvailableCurrencies(currencyMap)
+		return
 	}
+	_, fromOk := currencyMap[*from]
+	_, toOk := currencyMap[*to]
 
-	wg.Wait()
+	if fromOk && toOk {
+		getCurrencyData(*from, *to)
+	} else {
+		fmt.Println("Invalid currency see list")
+	}
 }
 
-func getCurrencyData(currency string) {
-	rate, err := api.GetRate(currency)
+func getCurrencyData(cryptoCurrency, currency string) {
+	rate, err := api.GetRate(cryptoCurrency, currency)
 	if err != nil {
-		fmt.Println(fmt.Errorf("error occured %v", err))
+		fmt.Println(fmt.Errorf("error(in get) occured %v", err))
 	}
 
-	fmt.Printf("The rate for %v is %.2f $\n", rate.Currency, rate.Price)
+	fmt.Printf("The rate for %v is %.2f %s\n", rate.Currency, rate.Price, currency)
+}
+
+func printAvailableCurrencies(currMap map[string]string) {
+	for key, desc := range currMap {
+		fmt.Printf("%s : %s\n", key, desc)
+	}
 }
