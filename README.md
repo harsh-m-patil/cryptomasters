@@ -1,6 +1,6 @@
 # Crypomasters
 
-> cli based basic cryptocurrency converter
+> cli based basic cryptocurrency rate converter
 
 ## Demo
 
